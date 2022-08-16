@@ -1,0 +1,16 @@
+{
+  "name": "bitburner",
+  "version": "1.0.0",
+  "description": "scripts from bitBurner",
+  "main": "index.js",
+  "scripts": {
+    "get": "npx bitburner-sync --get",
+    "help": "npx bitburner-sync --help",
+    "sync": "npx bitburner-sync --watch"
+  },
+  "author": "Arno67000",
+  "license": "ISC",
+  "dependencies": {
+    "bitburner-sync": "^1.5.2"
+  }
+}
