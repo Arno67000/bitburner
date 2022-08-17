@@ -40,25 +40,31 @@ export async function autoRun(ns) {
             targets.toUnlock.push(serverName);
             return;
         }
-        //check if server has already been hacked
-        if (serverAlreadyHacked(ns, server)) {
-            alreadyAttackedList.push(serverName);
-            return;
-        }
         // check if server cannot run scripts locally BUT got money
         if (serverRemotelyHackable(ns, server)) {
             targets.toRemoteHack.push(serverName);
+            return;
+        }
+        // small servers we need to grow more from 'home' OR server getting poor after hacks
+        if (
+            (RAM <= 16 && ns.getRunningScript("grow.js", "home", serverName) === null)|| 
+            (
+                server.moneyMax * 0.75 > server.moneyAvailable && 
+                ns.getRunningScript("grow.js", "home", serverName) === null &&
+                server.moneyAvailable > 0
+            )
+        ) {
+            targets.toGrow.push(serverName);
+        }
+        //check if server has already been hacked
+        if (serverAlreadyHacked(ns, server)) {
+            alreadyAttackedList.push(serverName);
             return;
         }
 
         /**
          * Here RAM && serverMoney are available
          * */
-
-        // small servers we need to grow more from 'home'
-        if (RAM <= 16 && serverName !== "n00dles") {
-            targets.toGrow.push(serverName);
-        }
 
         if (RAM < 8) {
             // very small server , too small for a batch, we'll launch smaller attack script
@@ -68,7 +74,6 @@ export async function autoRun(ns) {
         }
     });
     ns.tprint("**** unattackableList : ", unattackableList, "  ****");
-    ns.tprint("**** alreadyAttackedList : ", alreadyAttackedList, "  ****");
 
     ns.tprint(`\nTARGETS : \n${JSON.stringify(targets)}`);
     const targetList = Object.values(targets).flat();
@@ -83,12 +88,12 @@ export async function autoRun(ns) {
     targets.toLightHack.forEach((target) =>
         ns.run("attack.js", 1, target, "lightHack.js")
     );
-    targets.toGrow.forEach((target) =>
-        ns.run("distantRun.js", 1, target, "grow.js", 8)
-    );
     targets.toHack.forEach((target) => ns.run("batcher.js", 1, target));
     targets.toRemoteHack.forEach((target) =>
         ns.run("remoteHack.js", 1, target, 80)
+    );
+    targets.toGrow.forEach((target) =>
+        ns.run("distantRun.js", 1, target, "grow.js", 8)
     );
 
     // Logging attacked servers
